@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Birthday Gift - Full Animasi</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(120deg, #2c2a29, #4b463f);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        color: #e8e1d9;
+        position: relative;
+      }
+      .container {
+        max-width: 600px;
+        background: rgba(50, 45, 42, 0.85);
+        border-radius: 18px;
+        padding: 3rem 2.5rem;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+        text-align: center;
+        position: relative;
+        z-index: 20;
+      }
+      h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 2.8rem;
+        margin-bottom: 1rem;
+        color: #f9f5f0;
+        min-height: 4rem;
+      }
+      p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        color: #d9d2c8;
+        min-height: 3rem;
+      }
+      p.quote {
+        font-style: italic;
+        margin-top: 1.5rem;
+        color: #f3e9d2;
+        min-height: 3rem;
+      }
+      button.gift-button {
+        background: #d9b382;
+        color: #2c2a29;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 2.5rem;
+        font-size: 1.1rem;
+        cursor: pointer;
+        font-weight: 600;
+        box-shadow: 0 5px 10px rgba(217, 179, 130, 0.5);
+        transition: background-color 0.4s ease, transform 0.2s ease;
+      }
+      button.gift-button:hover {
+        background-color: #c9a960;
+        transform: scale(1.05);
+      }
+      button.gift-button:active {
+        transform: scale(0.95);
+      }
+      #openBtn.fade-out {
+        animation: fadeOutBtn 0.8s forwards;
+      }
+      @keyframes fadeOutBtn {
+        to {
+          opacity: 0;
+          pointer-events: none;
+          transform: translateY(20px);
+        }
+      }
+      .fade-word {
+        opacity: 0;
+        display: inline-block;
+        transform: translateY(10px);
+        animation-fill-mode: forwards;
+        animation-name: fadeInWord;
+        animation-timing-function: ease-out;
+      }
+      @keyframes fadeInWord {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      canvas#fireworks {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 10;
+      }
+      /* Love hearts */
+      .heart {
+        position: fixed;
+        color: #f9b4bd;
+        font-size: 24px;
+        user-select: none;
+        pointer-events: none;
+        animation: riseHeart 5s linear forwards;
+        opacity: 0.8;
+        z-index: 15;
+      }
+      @keyframes riseHeart {
+        0% {
+          transform: translateY(0) scale(1);
+          opacity: 0.8;
+        }
+        100% {
+          transform: translateY(-120vh) scale(1.5);
+          opacity: 0;
+        }
+      }
+      /* Confetti */
+      .confetti {
+        position: fixed;
+        width: 8px;
+        height: 14px;
+        background-color: #d9b382;
+        opacity: 0.9;
+        pointer-events: none;
+        top: 0;
+        animation: fallConfetti linear forwards;
+        border-radius: 2px;
+        z-index: 15;
+      }
+      @keyframes fallConfetti {
+        0% {
+          transform: translateY(0) rotate(0deg);
+          opacity: 0.9;
+        }
+        100% {
+          transform: translateY(110vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="fireworks"></canvas>
+
+    <div class="container" id="giftBox">
+      <h1 id="mainText"></h1>
+      <p id="messageText"></p>
+      <p class="quote" id="quoteText"></p>
+      <button class="gift-button" id="openBtn">Open Gift</button>
+    </div>
+
+    <audio
+      id="bgm"
+      src="https://cdn.pixabay.com/download/audio/2023/03/01/audio_45ae0e43c2.mp3?filename=birthday-14392.mp3"
+      preload="auto"
+    ></audio>
+
+    <script>
+      const openBtn = document.getElementById("openBtn");
+      const mainText = document.getElementById("mainText");
+      const messageText = document.getElementById("messageText");
+      const quoteText = document.getElementById("quoteText");
+      const bgm = document.getElementById("bgm");
+
+      function animateWords(element, text, delay = 250) {
+        element.textContent = "";
+        const words = text.split(" ");
+        words.forEach((word, i) => {
+          const span = document.createElement("span");
+          span.textContent = word; // kata
+          span.classList.add("fade-word");
+          span.style.animationDuration = "0.5s";
+          span.style.animationDelay = `${i * delay}ms`;
+          element.appendChild(span);
+          if (i < words.length - 1) {
+            element.appendChild(document.createTextNode(" ")); // kasih spasi antar kata
+          }
+        });
+        return words.length * delay + 500;
+      }
+
+      // Fireworks setup
+      const canvas = document.getElementById("fireworks");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const fireworks = [];
+
+      function createFirework() {
+        const x = Math.random() * canvas.width;
+        const y = (Math.random() * canvas.height) / 2;
+        const particles = [];
+        const colors = ["#d9b382", "#f3e9d2", "#c9a960", "#e8d09b", "#f0e6c8"];
+
+        for (let i = 0; i < 80; i++) {
+          particles.push({
+            x,
+            y,
+            angle: Math.random() * 2 * Math.PI,
+            speed: Math.random() * 3 + 1.5,
+            radius: Math.random() * 2 + 1,
+            alpha: 1,
+            color: colors[Math.floor(Math.random() * colors.length)],
+          });
+        }
+        fireworks.push(particles);
+      }
+
+      function animate() {
+        ctx.fillStyle = "rgba(44, 42, 41, 0.15)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = fireworks.length - 1; i >= 0; i--) {
+          const particles = fireworks[i];
+          particles.forEach((p) => {
+            p.x += Math.cos(p.angle) * p.speed;
+            p.y += Math.sin(p.angle) * p.speed;
+            p.alpha -= 0.015;
+          });
+
+          fireworks[i] = particles.filter((p) => p.alpha > 0);
+
+          if (fireworks[i].length === 0) {
+            fireworks.splice(i, 1);
+          }
+        }
+
+        fireworks.forEach((particles) => {
+          particles.forEach((p) => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+            ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
+            ctx.fill();
+          });
+        });
+
+        requestAnimationFrame(animate);
+      }
+
+      function hexToRgb(hex) {
+        const bigint = parseInt(hex.slice(1), 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return `${r},${g},${b}`;
+      }
+
+      // love hearts
+      function createHeart() {
+        const heart = document.createElement("div");
+        heart.classList.add("heart");
+        heart.style.left = `${Math.random() * 100}vw`;
+        heart.style.fontSize = `${Math.random() * 14 + 16}px`;
+        heart.style.animationDuration = `${Math.random() * 4 + 3}s`;
+        heart.textContent = "❤️";
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 7000);
+      }
+
+      // confetti
+      function createConfetti() {
+        const confetti = document.createElement("div");
+        confetti.classList.add("confetti");
+        confetti.style.left = `${Math.random() * 100}vw`;
+        confetti.style.backgroundColor = [
+          "#d9b382",
+          "#c9a960",
+          "#f3e9d2",
+          "#e8d09b",
+        ][Math.floor(Math.random() * 4)];
+        confetti.style.animationDuration = `${Math.random() * 3 + 3}s`;
+        confetti.style.top = "-20px";
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 6000);
+      }
+
+      function startCelebration() {
+        let fwInterval = setInterval(createFirework, 300);
+        let heartInterval = setInterval(createHeart, 500);
+        let confettiInterval = setInterval(createConfetti, 250);
+
+        setTimeout(() => {
+          clearInterval(fwInterval);
+          clearInterval(heartInterval);
+          clearInterval(confettiInterval);
+        }, 15000);
+      }
+
+      openBtn.addEventListener("click", () => {
+        openBtn.classList.add("fade-out");
+        bgm.play();
+        startCelebration();
+
+        // Animate first mainText line
+        let timeMain = animateWords(
+          mainText,
+          "You light up my world with your presence.",
+          300
+        );
+
+        // Chain second message after mainText
+        setTimeout(() => {
+          animateWords(
+            messageText,
+            "Semoga harimu penuh canda, tawa, dan kebahagiaan.",
+            300
+          );
+        }, timeMain);
+
+        // Chain quote after message
+        setTimeout(() => {
+          animateWords(quoteText, "“You deserve all the joy and more.”", 300);
+        }, timeMain + 3200);
+
+        // Hide the button after fadeout animation
+        setTimeout(() => {
+          openBtn.style.display = "none";
+        }, 800);
+      });
+
+      animate();
+    </script>
+  </body>
+</html>
